@@ -12,30 +12,85 @@ namespace rm_dupes
     {
         static int Main(string[] args)
         {
-            if(args.Length != 2)
+            ///Argument handling
+            bool Verbose = false;
+            bool Remove = false;
+            string Source = "";
+            string Dest = "";
+            foreach (string arg in args)
+            {
+                switch (arg)
+                {
+                    case "-v":
+                        Verbose = true;
+                        break;
+                    case "-r":
+                        Remove = true;
+                        break;
+                    case "-h":
+                        //TODO Help message
+                        Console.WriteLine("correct usage: rm-dupes [-v] [-r] KEEP DELETE");
+                        return 0;
+
+                    default:
+                        if (Source != "")
+                        {
+                            if (Dest != "")
+                            {
+                                Console.WriteLine("Wrong syntax, correct usage: rm-dupes [-v] [-r] KEEP DELETE");
+                                return 1;
+                            }
+                            else
+                                Dest = arg;
+                        }
+                        else
+                            Source = arg;
+
+                        break;
+                }
+            }
+
+
+
+            if(Source == "" || Dest == "")
             {
                 Console.WriteLine("Wrong syntax, correct usage: rm-dupes KEEP DELETE");
                 return 1;
             }
-            if(!(Directory.Exists(args[0]) && Directory.Exists(args[1])))
+            if(!(Directory.Exists(Source)))
             {
-                Console.WriteLine("One of the folders doesn't exist!");
+                Console.WriteLine("Directory {0} doesn't exist", Source);
                 return 2;
             }
-            Console.WriteLine("Generating Hashes for the first folder...");
+            if (!(Directory.Exists(Dest)))
+            {
+                Console.WriteLine("Directory {0} doesn't exist", Dest);
+                return 2;
+            }
+            if (Verbose) Console.WriteLine("Generating Hashes for the first folder...");
             Hash[] KeepHashes = GenerateHashes(args[0]);
 
-            Console.WriteLine("Sorting Hashes...");
+            if (Verbose) Console.WriteLine("Sorting Hashes...");
             Array.Sort(KeepHashes);
 
-            Console.WriteLine("Comparing Hashes...");
+            if (Verbose) Console.WriteLine("Comparing Hashes...");
             string[] DupesToDelete = CheckHashesForDupes(args[1], KeepHashes);
 
             foreach (string v in DupesToDelete)
             {
                 Console.WriteLine(v);
             }
-            Console.WriteLine("FINISHED");
+
+            if (Remove)
+            {
+                if (Verbose) Console.WriteLine("Removing duplicates from {0} ...", Dest);
+                foreach (string file in DupesToDelete)
+                {
+                    File.Delete(file);
+                }
+            }
+
+            if (Verbose) Console.WriteLine("Finished");
             Console.ReadKey();
 
             return 0;
