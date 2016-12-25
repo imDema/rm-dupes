@@ -97,6 +97,7 @@ namespace rm_dupes
 
         private class Hash : IComparable
         {
+            const int HASHLENGTH = 20;
             private byte[] _bytes;
             public byte[] bytes
             {
@@ -106,10 +107,10 @@ namespace rm_dupes
                 }
                 set
                 {
-                    if (value.Length == 16)
+                    if (value.Length == HASHLENGTH)
                         _bytes = value;
                     else
-                        throw new InvalidDataException("byte[] length MUST be 16");
+                        throw new InvalidDataException("byte[] length MUST be HASHLENGTH");
                 }
             }
             public int CompareTo(object obj)
@@ -121,7 +122,7 @@ namespace rm_dupes
                 {
                     if (_bytes == hash.bytes)
                         return 0;
-                    for (int i = 0; i < 16; i++)
+                    for (int i = 0; i < HASHLENGTH; i++)
                     {
                         if (_bytes[i] > hash.bytes[i])
                             return 1;
@@ -145,11 +146,11 @@ namespace rm_dupes
             List<string> LocalDupes = new List<string>();
             foreach(string file in Directory.GetFiles(path))
             {
-                using (MD5 md5 = MD5.Create())
+                using (SHA1 sha1 = SHA1.Create())
                 {
                     using (FileStream fs = File.OpenRead(file))
                     {
-                        if (Array.BinarySearch(hashes, new Hash(md5.ComputeHash(fs))) > 0)
+                        if (Array.BinarySearch(hashes, new Hash(sha1.ComputeHash(fs))) > 0)
                             LocalDupes.Add(file);
                     }
                 }
@@ -167,13 +168,13 @@ namespace rm_dupes
         {
             string[] files = Directory.GetFiles(path);
             Hash[] WorkingDirHashes = new Hash[files.Length];
-            using (MD5 md5 = MD5.Create())
+            using (SHA1 sha1 = SHA1.Create())
             {
                 for (int i = 0; i < files.Length; i++)
                 {
                     using (FileStream fs = File.OpenRead(files[i]))
                     {
-                        WorkingDirHashes[i] = new Hash(md5.ComputeHash(fs));
+                        WorkingDirHashes[i] = new Hash(sha1.ComputeHash(fs));
                     }
                 }
             }
