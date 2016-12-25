@@ -91,7 +91,6 @@ namespace rm_dupes
             }
 
             if (Verbose) Console.WriteLine("Finished");
-            Console.ReadKey();
 
             return 0;
         }
