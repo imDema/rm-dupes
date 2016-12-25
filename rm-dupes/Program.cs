@@ -22,23 +22,28 @@ namespace rm_dupes
                 Console.WriteLine("One of the folders doesn't exist!");
                 return 2;
             }
-
+            Console.WriteLine("Generating Hashes for the first folder...");
             Hash[] KeepHashes = GenerateHashes(args[0]);
+
+            Console.WriteLine("Sorting Hashes...");
             Array.Sort(KeepHashes);
-            //SortArray(KeepHashes, 0, KeepHashes.Length-1);
+
+            Console.WriteLine("Comparing Hashes...");
             string[] DupesToDelete = CheckHashesForDupes(args[1], KeepHashes);
 
             foreach (string v in DupesToDelete)
             {
                 Console.WriteLine(v);
             }
+            Console.WriteLine("FINISHED");
             Console.ReadKey();
+
             return 0;
         }
 
         private class Hash : IComparable
         {
-            byte[] _bytes;
+            private byte[] _bytes;
             public byte[] bytes
             {
                 get
@@ -60,14 +65,16 @@ namespace rm_dupes
                 Hash hash = obj as Hash;
                 if (hash != null)
                 {
-                    if (_bytes == hash._bytes)
+                    if (_bytes == hash.bytes)
                         return 0;
                     for (int i = 0; i < 16; i++)
                     {
-                        if (_bytes[i] > hash._bytes[i])
+                        if (_bytes[i] > hash.bytes[i])
                             return 1;
+                        if (_bytes[i] < hash.bytes[i])
+                            return -1;
                     }
-                    return -1;
+                    return 0;
                 }
                 else
                     throw new ArgumentException("The argument supplied is not an hash");
@@ -79,39 +86,6 @@ namespace rm_dupes
             public Hash(){}
         }
 
-        //private static int SortArray(byte[][] array, int sx, int dx)
-        //{
-        //    int pivot = SortArray(array, )
-        //    while (sx < dx)
-        //    {
-        //        while(GreaterThan(array[pivot],array[sx]))
-        //        {
-        //            sx++;
-        //        }
-        //        while(GreaterThan(array[dx],array[pivot]))
-        //        {
-        //            dx--;
-        //        }
-        //        if(GreaterThan(sx<dx))
-        //        {
-        //            Swap(array[sx], array[dx]);
-        //        }
-        //    }
-
-        //}
-
-        //private static void Swap(byte[] v1, byte[] v2)
-        //{
-        //    if (v1.Length != v2.Length)
-        //        throw new Exception();
-        //    for (int i = 0; i < v1.Length; i++)
-        //    {
-        //        byte temp = v1[i];
-        //        v1[i] = v2[i];
-        //        v2[i] = temp;
-        //    }
-        //}
-
         private static string[] CheckHashesForDupes(string path, Hash[] hashes)
         {
             List<string> LocalDupes = new List<string>();
@@ -121,7 +95,7 @@ namespace rm_dupes
                 {
                     using (FileStream fs = File.OpenRead(file))
                     {
-                        if (Array.BinarySearch(hashes, md5.ComputeHash(fs)) > 0)
+                        if (Array.BinarySearch(hashes, new Hash(md5.ComputeHash(fs))) > 0)
                             LocalDupes.Add(file);
                     }
                 }
